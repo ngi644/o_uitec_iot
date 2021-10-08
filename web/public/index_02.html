@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>データの可視化 001</title>
+    <title>データの可視化</title>
 
     <!-- update the version number as needed -->
     <script defer src="/__/firebase/8.7.1/firebase-app.js"></script>
@@ -32,10 +32,10 @@
         }
 
         .style-2 {
-            fill: #b70089;
+            fill: #b2b700;
             fill-opacity: 0;
             stroke-width: 2px;
-            stroke: #b70089;
+            stroke: #b2b700;
         }
 
     </style>
@@ -56,9 +56,10 @@
 
     document.addEventListener('DOMContentLoaded', function() {
 
-      let app = firebase.app();    
+      let app = firebase.app();
+      let station_id = "st001";
       let container = document.getElementById('visualization');
-      let names = ['ACC X', 'ACC Y', 'ACC Z'];
+      let names = ['Humidity', 'Pressure', 'Templature'];
       let dataset = new vis.DataSet();
       let groups = new vis.DataSet();
       
@@ -101,6 +102,7 @@
           }
       });
 
+
       let date = new Date();
       let options = {
           dataAxis: {
@@ -119,9 +121,9 @@
       var ref = app.database().ref('stations').child(station_id + '/data');
       ref.limitToLast(100).on('child_added', function(snapshot) {
           var newData = snapshot.val();
-          addItem(newData.timestamp, newData.ax, 0);
-          addItem(newData.timestamp, newData.ay, 1);
-          addItem(newData.timestamp, newData.az, 2);
+          addItem(newData.timestamp, newData.humid, 0);
+          addItem(newData.timestamp, newData.press, 1);
+          addItem(newData.timestamp, newData.temp, 2);
           let now = new Date();
           graph2d.setWindow(now.setMinutes(now.getMinutes() - 5), now.setMinutes(now.getMinutes() + 10), {animation: false});
       });
