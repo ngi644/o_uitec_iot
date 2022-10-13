@@ -115,7 +115,7 @@ void setup() {
   Serial.begin(115200);
 
   Wire.begin();
-
+  bme.setI2CAddress(0x76);  // I2C address {0x76 or 0x77}
   if (bme.beginI2C() == false) //Begin communication over I2C
   {
     Serial.println("The sensor did not respond. Please check wiring.");
