@@ -15,7 +15,7 @@
     <script defer src="/__/firebase/init.js"></script>
 
     <!-- Firebase Auth UI-->
-    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
 
     <!-- vis.js -->
@@ -28,7 +28,7 @@
             fill: #f2ea00;
             fill-opacity: 0;
             stroke-width: 2px;
-            stroke: #b3ab00;
+            stroke: #003cb3;
         }
         .style-1 {
             fill: #00b72b;
@@ -48,6 +48,7 @@
 
   </head>
   <body>
+
 
   <h2>計測データ</h2>
 
@@ -75,7 +76,6 @@
 
                     // 利用する認証機能
                     signInOptions: [
-                        firebase.auth.EmailAuthProvider.PROVIDER_ID,
                         firebase.auth.GoogleAuthProvider.PROVIDER_ID
                     ],
                 };
@@ -93,12 +93,15 @@
             }).catch((error) => {
                 // ログアウトエラー処理
             });
+
     }
   </script>
 
   <script type="text/javascript">
 
     let station_id = "st001";
+    let dataset = new vis.DataSet();
+    let groups = new vis.DataSet();
 
     function show_data(){
 
@@ -106,8 +109,6 @@
       //let station_id = "st001";
       let container = document.getElementById('visualization');
       let names = ['Humidity', 'Pressure', 'Templature'];
-      let dataset = new vis.DataSet();
-      let groups = new vis.DataSet();
       
       groups.add({
           id: 0,
@@ -140,7 +141,7 @@
           content: names[2],
           className: 'style-2',
           options: {
-            yAxisOrientation: 'left',
+            yAxisOrientation: 'right',
             interpolation: false,
             drawPoints: {
               size: 2
@@ -156,7 +157,8 @@
           },
           width: '100%',
           height: '550px',
-          legend: { left: { position: "top-right" } },
+          legend: { left: { position: "top-left" },
+                    right: { position: "top-right" } },
           start: date.setMinutes(date.getMinutes() - 5),
           end: date.setMinutes(date.getMinutes() + 15)
 
@@ -198,3 +200,21 @@
 
   </body>
 </html>
+
+```
+
+
+
+## デプロイして確認
+
+
+```bash
+firebase deploy
+```
+
+デプロイされたURLへアクセス,次の状態になっています．
+
+<center>
+<img src="images/lite/fb_auth_6.png" width="50%">
+</center>
+
