@@ -40,6 +40,7 @@ ESP32でセンサの値を取得し，MQTT（Raspberry Pi + Node-RED）を経由
 |`web/public/index_02.html`|LED操作ボタンの追加|s07|
 |`web/public/index_03.html`|ログイン機能の追加|s08|
 |`web/database.rules.json`|Realtime Databaseのセキュリティルール|s09|
+|`node-red/`|Node-REDの完成版フロー（s03〜s07の各段階．[使い方](node-red/README.md)）|s03〜s07|
 
 ## 動作環境（2026年度）
 

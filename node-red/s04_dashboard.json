@@ -1,0 +1,451 @@
+[
+  {
+    "id": "iot_tab",
+    "type": "tab",
+    "label": "IoT演習（s04まで）",
+    "disabled": false,
+    "info": "IoTシステムの構築とその活用 演習用フロー\nhttps://github.com/ngi644/o_uitec_iot",
+    "env": []
+  },
+  {
+    "id": "c_s03",
+    "type": "comment",
+    "z": "iot_tab",
+    "name": "s03 MQTTブローカとSubscriber",
+    "info": "Aedes MQTT broker ノードがブローカ（ポート1883）になります。\nmqtt in ノードで device01/bme を購読し、ESP32から届いたデータをデバッグ欄に表示します。",
+    "x": 170,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "aedes",
+    "type": "aedes broker",
+    "z": "iot_tab",
+    "name": "Aedes MQTT broker",
+    "mqtt_port": 1883,
+    "mqtt_ws_bind": "port",
+    "mqtt_ws_port": "",
+    "mqtt_ws_path": "",
+    "cert": "",
+    "key": "",
+    "ca": "",
+    "certname": "",
+    "keyname": "",
+    "caname": "",
+    "persistence_bind": "memory",
+    "dburl": "",
+    "persist_to_file": false,
+    "usetls": false,
+    "x": 160,
+    "y": 100,
+    "wires": [
+      [
+        "dbg_broker"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "dbg_broker",
+    "type": "debug",
+    "z": "iot_tab",
+    "name": "ブローカの状態",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 420,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "in_bme",
+    "type": "mqtt in",
+    "z": "iot_tab",
+    "name": "",
+    "topic": "device01/bme",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_cfg",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 180,
+    "wires": [
+      [
+        "dbg_bme",
+        "chg_temp",
+        "chg_humid",
+        "chg_press"
+      ]
+    ]
+  },
+  {
+    "id": "dbg_bme",
+    "type": "debug",
+    "z": "iot_tab",
+    "name": "センサデータ",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 400,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "c_s04",
+    "type": "comment",
+    "z": "iot_tab",
+    "name": "s04 ダッシュボード（Dashboard 2.0）",
+    "info": "@flowfuse/node-red-dashboard が必要です。\nブラウザで http://[Raspberry PiのIPアドレス]:1880/dashboard を開きます。",
+    "x": 190,
+    "y": 240,
+    "wires": []
+  },
+  {
+    "id": "chg_temp",
+    "type": "change",
+    "z": "iot_tab",
+    "name": "温度",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "payload.temp",
+        "tot": "msg"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 400,
+    "y": 280,
+    "wires": [
+      [
+        "g_temp"
+      ]
+    ]
+  },
+  {
+    "id": "chg_humid",
+    "type": "change",
+    "z": "iot_tab",
+    "name": "湿度",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "payload.humid",
+        "tot": "msg"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 400,
+    "y": 320,
+    "wires": [
+      [
+        "g_humid"
+      ]
+    ]
+  },
+  {
+    "id": "chg_press",
+    "type": "change",
+    "z": "iot_tab",
+    "name": "気圧",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "payload.press",
+        "tot": "msg"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 400,
+    "y": 360,
+    "wires": [
+      [
+        "g_press"
+      ]
+    ]
+  },
+  {
+    "id": "g_temp",
+    "type": "ui-gauge",
+    "z": "iot_tab",
+    "name": "温度",
+    "group": "ui_group_env",
+    "order": 1,
+    "value": "payload",
+    "valueType": "msg",
+    "width": 3,
+    "height": 3,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "温度",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": "top-left",
+    "units": "℃",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2196F3",
+        "from": 0
+      },
+      {
+        "color": "#5CD65C",
+        "from": 18
+      },
+      {
+        "color": "#FFC800",
+        "from": 26
+      },
+      {
+        "color": "#EA5353",
+        "from": 30
+      }
+    ],
+    "min": 0,
+    "max": 40,
+    "sizeThickness": 16,
+    "sizeGap": 4,
+    "sizeKeyThickness": 8,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "x": 610,
+    "y": 280,
+    "wires": []
+  },
+  {
+    "id": "g_humid",
+    "type": "ui-gauge",
+    "z": "iot_tab",
+    "name": "湿度",
+    "group": "ui_group_env",
+    "order": 2,
+    "value": "payload",
+    "valueType": "msg",
+    "width": 3,
+    "height": 3,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "湿度",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": "top-left",
+    "units": "%",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#FFC800",
+        "from": 0
+      },
+      {
+        "color": "#5CD65C",
+        "from": 40
+      },
+      {
+        "color": "#2196F3",
+        "from": 60
+      }
+    ],
+    "min": 0,
+    "max": 100,
+    "sizeThickness": 16,
+    "sizeGap": 4,
+    "sizeKeyThickness": 8,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "x": 610,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "g_press",
+    "type": "ui-gauge",
+    "z": "iot_tab",
+    "name": "気圧",
+    "group": "ui_group_env",
+    "order": 3,
+    "value": "payload",
+    "valueType": "msg",
+    "width": 3,
+    "height": 3,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "気圧",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": "top-left",
+    "units": "hPa",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#5CD65C",
+        "from": 950
+      }
+    ],
+    "min": 950,
+    "max": 1050,
+    "sizeThickness": 16,
+    "sizeGap": 4,
+    "sizeKeyThickness": 8,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "x": 610,
+    "y": 360,
+    "wires": []
+  },
+  {
+    "id": "mqtt_broker_cfg",
+    "type": "mqtt-broker",
+    "name": "localhost",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "ui_base",
+    "type": "ui-base",
+    "name": "IoT演習",
+    "path": "/dashboard",
+    "appIcon": "",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "page",
+    "navigationStyle": "default",
+    "titleBarStyle": "default",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 1,
+    "showDisconnectNotification": true,
+    "allowInstall": false
+  },
+  {
+    "id": "ui_theme",
+    "type": "ui-theme",
+    "name": "Default Theme",
+    "colors": {
+      "surface": "#fcfcfd",
+      "primary": "#0d74ce",
+      "bgPage": "#f9f9fb",
+      "groupBg": "#ffffff",
+      "groupOutline": "#d9d9e0"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "ui_page",
+    "type": "ui-page",
+    "name": "計測データ",
+    "ui": "ui_base",
+    "path": "/page1",
+    "icon": "home",
+    "layout": "grid",
+    "theme": "ui_theme",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": "0",
+        "cols": "3"
+      },
+      {
+        "name": "Tablet",
+        "px": "576",
+        "cols": "6"
+      },
+      {
+        "name": "Small Desktop",
+        "px": "768",
+        "cols": "9"
+      },
+      {
+        "name": "Desktop",
+        "px": "1024",
+        "cols": "12"
+      }
+    ],
+    "order": 1,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "ui_group_env",
+    "type": "ui-group",
+    "name": "BME280 (device01)",
+    "page": "ui_page",
+    "width": "9",
+    "height": "1",
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  }
+]
