@@ -1,13 +1,12 @@
+#include <WiFi.h>
+#include <Wire.h>
+#include <time.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <SparkFunBME280.h>
 
-// WiFi
-#include <WiFi.h>
-#include <time.h>
-
 // wifi config
-#define WIFI_SSID "{WiFiSSID}" 
+#define WIFI_SSID "{WiFiSSID}"
 #define WIFI_PASSWORD "{WiFiパスワード}"
 
 // MQTT config
@@ -17,51 +16,61 @@
 #define TOPIC "device01/bme"
 
 // デバイスID　デバイスIDは機器ごとにユニークにします
-#define DEVICE_ID "esp-xxx"
+#define DEVICE_ID "esp001"
+
+// センサデータの送信間隔 (ミリ秒)
+#define SEND_INTERVAL_MS 5000
 
 // BME280
 BME280 bme;
 BME280_SensorMeasurements measurements;
 
-// Ticker
-#include <Ticker.h>
-Ticker tickerMeasure;
-
-// MQTT Publish
-const int message_capacity = JSON_OBJECT_SIZE(3);
-StaticJsonDocument<message_capacity> json_message;
+// MQTT Publish用のJSONとバッファ
+JsonDocument json_message;
 char message_buffer[MQTT_BUFFER_SIZE];
 
 // MQTT用インスタンス作成
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// 最後にデータを送信した時刻 (millis()の値)
+unsigned long lastSendTime = 0;
+
 
 // WiFiへの接続
 void setupWiFi() {
-  // connect wifi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("WiFi connecting");
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.println(".");
-    delay(100);
+    Serial.print(".");
+    delay(500);
   }
 
   Serial.println("");
   Serial.print("Connected : ");
   Serial.println(WiFi.localIP());
   // sync Time
-  configTime( 3600L * 9, 0, "ntp.nict.jp", "ntp.jst.mfeed.ad.jp");
-
-  // MQTTブローカに接続
-  client.setServer(MQTT_SERVER, MQTT_PORT);
-
-  // 1sごとにセンサデータを送信する
-  tickerMeasure.attach_ms(1000, sendSensorData);
-
+  configTime(3600L * 9, 0, "ntp.nict.jp", "ntp.jst.mfeed.ad.jp");
 }
 
 
-void sendSensorData(void) {
+// MQTTブローカへの接続（切断されていたら再接続）
+void connectMqtt() {
+  while (!client.connected()) {
+    Serial.println("Mqtt Reconnecting");
+    if (client.connect(DEVICE_ID)) {
+      Serial.println("Mqtt Connected");
+    } else {
+      // 接続に失敗した理由をコードで表示 (例: -2 はブローカに届かない)
+      Serial.print("failed, state=");
+      Serial.println(client.state());
+      delay(1000);
+    }
+  }
+}
+
+
+void sendSensorData() {
   //センサからデータの取得
   bme.readAllMeasurements(&measurements);
   Serial.println("Humidity,Pressure,BME-Temp");
@@ -85,7 +94,7 @@ void setup() {
   Serial.begin(115200);
 
   Wire.begin();
-  bme.setI2CAddress(0x76);  // I2C address {0x76 or 0x77}
+  bme.setI2CAddress(0x77);  // I2C address {0x76:GND or 0x77:VDD}
   if (bme.beginI2C() == false) //Begin communication over I2C
   {
     Serial.println("The sensor did not respond. Please check wiring.");
@@ -94,17 +103,24 @@ void setup() {
 
   // WiFi接続
   setupWiFi();
+
+  // MQTTブローカの設定
+  client.setServer(MQTT_SERVER, MQTT_PORT);
 }
 
+
 void loop() {
-  client.loop();
   // MQTT未接続の場合は，再接続
-  while (!client.connected() ) {
-    Serial.println("Mqtt Reconnecting");
-    if ( client.connect(DEVICE_ID) ) {
-      Serial.println("Mqtt Connected");
-      break;
-    }
-    delay(1000);
+  if (!client.connected()) {
+    connectMqtt();
+  }
+  // MQTTの送受信処理（loopのたびに必ず呼ぶ）
+  client.loop();
+
+  // 前回の送信から SEND_INTERVAL_MS 経過していたら送信する
+  unsigned long now = millis();
+  if (now - lastSendTime >= SEND_INTERVAL_MS) {
+    lastSendTime = now;
+    sendSensorData();
   }
 }

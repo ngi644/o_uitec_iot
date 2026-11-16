@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "stations": {
+      "$station_id": {
+        "data": {
+          ".read": "auth != null",
+          ".write": false
+        },
+        "status": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['status']) && newData.child('status').isNumber() && newData.child('status').val() >= 0 && newData.child('status').val() <= 3"
+        }
+      }
+    }
+  }
+}

@@ -4,11 +4,9 @@
 Ticker tickerInternal;
 
 void displayInternalSensorData() {
-  Serial.println("Temp, Hall");
-  Serial.print(temperatureRead());
-  Serial.print(",");
-  Serial.println( hallRead());
-  yield();
+  // シリアルプロッターは「ラベル:値」の形式で1行ずつ受け取ります
+  Serial.print("Temp:");
+  Serial.println(temperatureRead());
 }
 
 
@@ -24,3 +22,4 @@ void setup() {
 void loop() {
 
 }
+

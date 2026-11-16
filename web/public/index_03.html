@@ -1,26 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>データの可視化</title>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/10.7.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/10.7.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/10.7.0/firebase-database-compat.js"></script>
-    
-    <!-- initialize the SDK after all desired features are loaded -->
-    <script defer src="/__/firebase/init.js"></script>
-
-    <!-- Firebase Auth UI-->
-    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
-
-    <!-- vis.js -->
+    <!-- vis.js（グラフ表示ライブラリ） -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" />
 
     <style type="text/css">
@@ -36,212 +22,244 @@
             stroke-width: 2px;
             stroke: #00b72b;
         }
-
         .style-2 {
             fill: #b70089;
             fill-opacity: 0;
             stroke-width: 2px;
             stroke: #b70089;
         }
-
-    </style>  
-
+        .message {
+            color: #c00;
+        }
+    </style>
   </head>
   <body>
 
-
   <h2>計測データ</h2>
 
-  <div id="firebaseui-auth-container"></div>
+  <!-- 未ログインのときに表示する部分 -->
+  <div id="login-area" style="display: none;">
+    <p>計測データを見るにはログインしてください．</p>
+    <button id="btn-login">Googleでログイン</button>
+    <p id="domain-notice" class="message" style="display: none;"></p>
+    <p id="login-message" class="message"></p>
+  </div>
 
-  <div id="visualization"></div>
+  <!-- ログイン済みのときに表示する部分 -->
+  <div id="main-area" style="display: none;">
+    <div>
+      <span id="user-name"></span> でログイン中
+      <button id="btn-logout" style="float: right;">ログアウト</button>
+    </div>
+    <div id="visualization"></div>
+    <div id="buttons">
+      <button id="btn-on">ON</button>
+      <button id="btn-off">OFF</button>
+      <button id="btn-blink">Blink</button>
+    </div>
+    <p id="data-message" class="message"></p>
+  </div>
 
-  <script type="text/javascript">
+  <script type="module">
+    // Firebase SDK（modular版）をCDNから読み込む
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+    import { getDatabase, ref, query, limitToLast, onChildAdded, set } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
-    let station_id = "st001";
-    let dataset = new vis.DataSet();
-    let groups = new vis.DataSet();
-    let uiInstance = null;
+    const station_id = "st001";
 
-    document.addEventListener('DOMContentLoaded', function() {
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                document.getElementById('firebaseui-auth-container').style.display = 'none';
-                document.getElementById('buttons').style.display = 'block';
-                show_data();
-            } else {
-                // User is signed out
-                document.getElementById('firebaseui-auth-container').style.display = 'block';
-                document.getElementById('buttons').style.display = 'none';
-                
-                // UIが未初期化の場合のみ初期化
-                if (!uiInstance) {
-                    var uiConfig = {
-                        callbacks: {
-                            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                                // falseを返してonAuthStateChangedに処理を任せる
-                                return false;
-                            },
-                            signInFailure: function(error) {
-                                return Promise.resolve();
-                            }
-                        },
-                        // Safari等のバウンストラッキング対策としてポップアップに切替
-                        signInFlow: 'popup',
-                        signInOptions: [
-                            firebase.auth.GoogleAuthProvider.PROVIDER_ID
-                        ],
-                        // クレデンシャルヘルパー無効化（環境依存の問題回避）
-                        credentialHelper: firebaseui.auth.CredentialHelper.NONE
-                    };
+    // Firebase Hostingが提供するプロジェクトの設定を読み込んで初期化する
+    const response = await fetch("/__/firebase/init.json");
+    const firebaseConfig = await response.json();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-                    // UI開始処理を関数化
-                    const startAuthUI = () => {
-                        if (!uiInstance) {
-                            uiInstance = new firebaseui.auth.AuthUI(firebase.auth());
-                        }
-                        uiInstance.start('#firebaseui-auth-container', uiConfig);
-                    };
+    // ログイン用ドメイン（authDomain）と違うアドレスで開いている場合は案内を表示する
+    // 例: https://[プロジェクトID].web.app で開くと，ブラウザによってはログインできない
+    const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
+    if (!isLocal && location.hostname !== firebaseConfig.authDomain) {
+      const url = "https://" + firebaseConfig.authDomain + location.pathname;
+      const notice = document.getElementById("domain-notice");
+      notice.innerHTML = 'ログインできない場合は，<a href="' + url + '">' + url + '</a> を開いてください．';
+      notice.style.display = "block";
+    }
 
-                    // ポップアップ方式に合わせて LOCAL を優先（Safari対策）
-                    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-                        .then(() => {
-                            startAuthUI();
-                        })
-                        .catch(err => {
-                            // 最後の手段としてSESSION
-                            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
-                              .then(() => {
-                                  startAuthUI();
-                              })
-                              .catch(err2 => {
-                                  startAuthUI();
-                              });
-                        });
-                } else if (!uiInstance.isPendingRedirect()) {
-                    uiInstance.reset();
-                    uiInstance.start('#firebaseui-auth-container', {
-                        callbacks: {
-                            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                                return false;
-                            }
-                        },
-                        signInFlow: 'popup',
-                        signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
-                        credentialHelper: firebaseui.auth.CredentialHelper.NONE
-                    });
-                }
-            }
-        });
+
+    // ---------- 認証 ----------
+
+    // ログイン状態が変わるたびに呼ばれる（ページを開いたときにも1回呼ばれる）
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // ログイン済み
+        document.getElementById("login-area").style.display = "none";
+        document.getElementById("main-area").style.display = "block";
+        document.getElementById("user-name").textContent = user.displayName || user.email;
+        startGraph();
+      } else {
+        // 未ログイン
+        stopGraph();
+        document.getElementById("login-area").style.display = "block";
+        document.getElementById("main-area").style.display = "none";
+      }
     });
 
-    function logout() {
-            firebase.auth().signOut().then(() => {
-                // ログアウト成功
-                document.location = 'index.html';
-            }).catch((error) => {
-                // ログアウトエラー処理
-            });
+    // ログインボタン：Googleアカウントでログインするポップアップを開く
+    document.getElementById("btn-login").addEventListener("click", async () => {
+      const message = document.getElementById("login-message");
+      message.textContent = "";
+      try {
+        await signInWithPopup(auth, provider);
+        // 成功すると onAuthStateChanged が呼ばれて画面が切り替わる
+      } catch (error) {
+        console.error(error);
+        message.textContent = loginErrorMessage(error);
+      }
+    });
 
+    // ログアウトボタン
+    document.getElementById("btn-logout").addEventListener("click", () => {
+      signOut(auth);
+    });
+
+    // ログイン失敗時のメッセージ
+    function loginErrorMessage(error) {
+      switch (error.code) {
+        case "auth/popup-blocked":
+          return "ポップアップがブロックされました．ブラウザの設定でポップアップを許可してください．";
+        case "auth/popup-closed-by-user":
+        case "auth/cancelled-popup-request":
+          return "ログインが完了しませんでした．もう一度お試しください．";
+        case "auth/unauthorized-domain":
+          return "このドメインはログインが許可されていません．Firebaseコンソールの Authentication → 設定 → 承認済みドメイン を確認してください．";
+        case "auth/operation-not-allowed":
+          return "Googleログインが有効になっていません．Firebaseコンソールの Authentication → ログイン方法 を確認してください．";
+        default:
+          return "ログインに失敗しました（" + error.code + "）";
+      }
     }
-  </script>
 
-  <script type="text/javascript">
 
-    function show_data(){
+    // ---------- グラフ表示 ----------
 
-      let app = firebase.app();
-      let container = document.getElementById('visualization');
-      let names = ['Humidity', 'Pressure', 'Temperature'];
-      
+    let graph2d = null;
+    let dataset = null;
+    let unsubscribe = null;   // データの監視を止めるための関数
+
+    function createGraph() {
+      let container = document.getElementById("visualization");
+      let names = ["Humidity", "Pressure", "Temperature"];
+      dataset = new vis.DataSet();
+      let groups = new vis.DataSet();
       groups.add({
           id: 0,
           content: names[0],
-          className: 'style-0',
+          className: "style-0",
           options: {
-            yAxisOrientation: 'left',
+            yAxisOrientation: "left",
             interpolation: false,
             drawPoints: {
                 size: 2
             }
           }
       });
-
       groups.add({
           id: 1,
           content: names[1],
-          className: 'style-1',
+          className: "style-1",
           options: {
-            yAxisOrientation: 'right',
+            yAxisOrientation: "right",
             interpolation: false,
             drawPoints: {
               size: 2
             }
           }
       });
-
       groups.add({
           id: 2,
           content: names[2],
-          className: 'style-2',
+          className: "style-2",
           options: {
-            yAxisOrientation: 'left',
+            yAxisOrientation: "left",
             interpolation: false,
             drawPoints: {
               size: 2
             }
           }
       });
-
       let date = new Date();
       let options = {
           dataAxis: {
               showMinorLabels: true,
               alignZeros: false
           },
-          width: '100%',
-          height: '550px',
+          width: "100%",
+          height: "550px",
           legend: { left: { position: "top-left" },
                     right: { position: "top-right" } },
           start: date.setMinutes(date.getMinutes() - 5),
           end: date.setMinutes(date.getMinutes() + 15)
-
       };
-      let graph2d = new vis.Graph2d(container, dataset, groups, options);
+      graph2d = new vis.Graph2d(container, dataset, groups, options);
+    }
 
-      var ref = app.database().ref('stations').child(station_id + '/data');
-      ref.limitToLast(100).on('child_added', function(snapshot) {
-          var newData = snapshot.val();
+    // データの監視を開始する
+    function startGraph() {
+      if (graph2d === null) {
+        createGraph();
+      }
+      if (unsubscribe !== null) {
+        return;   // すでに監視中
+      }
+      const dataRef = query(ref(db, "stations/" + station_id + "/data"), limitToLast(100));
+      // データが追加されるたびに呼ばれる（最初は既存の最新100件について呼ばれる）
+      unsubscribe = onChildAdded(dataRef, (snapshot) => {
+          const newData = snapshot.val();
           addItem(newData.timestamp, newData.humid, 0);
           addItem(newData.timestamp, newData.press, 1);
           addItem(newData.timestamp, newData.temp, 2);
           let now = new Date();
           graph2d.setWindow(now.setMinutes(now.getMinutes() - 5), now.setMinutes(now.getMinutes() + 10), {animation: false});
+      }, (error) => {
+          // セキュリティルールで読み取りが許可されていない場合など
+          console.error(error);
+          document.getElementById("data-message").textContent = "データを読み込めません（" + error.message + "）";
       });
     }
 
+    // データの監視を止めて，グラフを空にする
+    function stopGraph() {
+      if (unsubscribe !== null) {
+        unsubscribe();
+        unsubscribe = null;
+      }
+      if (dataset !== null) {
+        dataset.clear();
+      }
+    }
+
     function addItem(timestamp, value, g) {
-          itm = { x: new Date(timestamp).toLocaleString(), y: value, group: g };
-          dataset.add(itm);
+      dataset.add({ x: new Date(timestamp), y: value, group: g });
     }
-    
-  </script>
 
-  <script type="text/javascript">
-    function change_status(st){
-      let ref = firebase.database().ref('stations').child(station_id + '/status');
-      ref.set({status: st});
+
+    // ---------- LEDの操作 ----------
+
+    function changeStatus(st) {
+      set(ref(db, "stations/" + station_id + "/status"), { status: st })
+        .catch((error) => {
+          console.error(error);
+          document.getElementById("data-message").textContent = "LEDの状態を変更できません（" + error.message + "）";
+        });
     }
+
+    // type="module" の中で定義した関数は onclick="..." から呼べないため，
+    // addEventListener でボタンと関数を結び付ける
+    document.getElementById("btn-on").addEventListener("click", () => changeStatus(1));
+    document.getElementById("btn-off").addEventListener("click", () => changeStatus(2));
+    document.getElementById("btn-blink").addEventListener("click", () => changeStatus(3));
   </script>
-
-  <div id="buttons" style="display: none;">
-    <button onclick="change_status(1);">ON</button>
-    <button onclick="change_status(2);">OFF</button>
-    <button onclick="change_status(3);">Blink</button>
-
-    <button onClick="logout()" style="float:right;">ログアウト</button>
-  </div>
 
   </body>
 </html>
