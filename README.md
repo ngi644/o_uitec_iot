@@ -46,4 +46,4 @@ ESP32でセンサの値を取得し，MQTT（Raspberry Pi + Node-RED）を経由
 - Arduino IDE 2.x，ESP32 Arduinoコア 3.x
 - ライブラリ：SparkFun BME280，PubSubClient，ArduinoJson 7.x
 - Raspberry Pi OS，Node-RED，node-red-contrib-aedes，@flowfuse/node-red-dashboard，node-red-contrib-firebase-data
-- Firebase（Realtime Database，Hosting，Authentication）
+- Firebase（Realtime Database，Hosting，Authentication），Firebase JavaScript SDK 13.x（modular版）

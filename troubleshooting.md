@@ -122,10 +122,23 @@ IoTシステムのトラブルは，**どこで止まっているか**を切り�
 - テストモードの期限（約30日）が切れていないか確認します．
 - セキュリティルールを変更した後は，Node-REDの `Auth Type` を `JSON Web Token`（サービスアカウント）にする必要があります（[s09](s09.md)）．
 
-### Googleでログインするとポップアップがすぐ閉じる・エラーになる
+### Googleでログインするとポップアップがすぐ閉じる・ログインできない
 
+- ページを `https://[プロジェクトID].web.app` で開いていないか確認します．`https://[プロジェクトID].firebaseapp.com` で開き直すと，ログインできることが多いです（理由は[s08](s08.md)を参照）．
 - ブラウザのポップアップブロックを解除します．
-- Firebaseコンソールの `Authentication` → `設定` → `承認済みドメイン` に，Webアプリのドメイン（`[プロジェクトID].web.app` など）が登録されているか確認します．
+- ページに表示されたエラーの `auth/...` の部分を確認します．
+  - `auth/operation-not-allowed`：Firebaseコンソールの `Authentication` → `ログイン方法` で，Googleが有効になっていません．
+  - `auth/unauthorized-domain`：`Authentication` → `設定` → `承認済みドメイン` に，ページのドメインが登録されていません．
+- Googleのログイン画面に `redirect_uri_mismatch` と表示される場合は，`authDomain` を変更したのに，Google Cloud コンソールでリダイレクトURIを追加していません（[s08](s08.md)の「発展」を参照）．
+
+### ボタンを押しても何も起きない・`changeStatus is not defined` と表示される
+
+- `<script type="module">` の中で定義した関数は，`onclick="..."` から呼べません．`addEventListener()` でボタンと関数を結び付けます（[s07](s07.md)）．
+- 開発者ツールの `コンソール` に，`import` のエラー（関数名の誤りや，`import` の一覧への追加忘れ）が出ていないか確認します．
+
+### HTMLファイルを直接開くと何も表示されない
+
+- `/__/firebase/init.json` はFirebase Hostingで公開したときだけ使えます．`firebase deploy` で公開してから確認します．公開せずに手元で確認したい場合は，`firebase emulators:start` を使います．
 
 ## 6. 講習の準備で確認しておくこと
 
