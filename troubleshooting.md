@@ -140,6 +140,10 @@ IoTシステムのトラブルは，**どこで止まっているか**を切り�
 - `<script type="module">` の中で定義した関数は，`onclick="..."` から呼べません．`addEventListener()` でボタンと関数を結び付けます（[s07](s07.md)）．
 - 開発者ツールの `コンソール` に，`import` のエラー（関数名の誤りや，`import` の一覧への追加忘れ）が出ていないか確認します．
 
+### Webアプリの見た目が崩れる（文字だけが並ぶ）
+
+- `public` フォルダに `style.css` を置き忘れていないか確認します（[s06](s06.md)）．置いた後は `firebase deploy` し直します．
+
 ### HTMLファイルを直接開くと何も表示されない
 
 - `/__/firebase/init.json` はFirebase Hostingで公開したときだけ使えます．`firebase deploy` で公開してから確認します．公開せずに手元で確認したい場合は，`firebase emulators:start` を使います．

@@ -36,6 +36,7 @@ ESP32でセンサの値を取得し，MQTT（Raspberry Pi + Node-RED）を経由
 |`arduino_code/esp32_sample02`|BME280センサの値の取得|s02|
 |`arduino_code/esp32_sample03`|MQTT Publish（センサ情報の送信）|s04|
 |`arduino_code/esp32_sample04`|MQTT Subscribe（LEDの制御）|s05|
+|`web/public/style.css`|Webアプリの共通スタイル（s06〜s08で使用）|s06|
 |`web/public/index_01.html`|データの可視化|s06|
 |`web/public/index_02.html`|LED操作ボタンの追加|s07|
 |`web/public/index_03.html`|ログイン機能の追加|s08|
@@ -47,4 +48,4 @@ ESP32でセンサの値を取得し，MQTT（Raspberry Pi + Node-RED）を経由
 - Arduino IDE 2.x，ESP32 Arduinoコア 3.x
 - ライブラリ：SparkFun BME280，PubSubClient，ArduinoJson 7.x
 - Raspberry Pi OS，Node-RED，node-red-contrib-aedes，@flowfuse/node-red-dashboard，node-red-contrib-firebase-data
-- Firebase（Realtime Database，Hosting，Authentication），Firebase JavaScript SDK 13.x（modular版）
+- Firebase（Realtime Database，Hosting，Authentication），Firebase JavaScript SDK 13.x（modular版），Chart.js 4.x
