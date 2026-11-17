@@ -1,0 +1,374 @@
+/* IoT 計測ダッシュボード 共通スタイル */
+
+:root {
+  --primary: #4e67c8;
+  --primary-dark: #3c52a8;
+  --navy: #212745;
+  --text: #2b3050;
+  --muted: #6b7190;
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --line: #e3e6f0;
+  --temp: #e4572e;
+  --humid: #2d9cdb;
+  --press: #4e67c8;
+  --ok: #2fa36b;
+  --error: #c62828;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+  line-height: 1.6;
+}
+
+/* ---------- ヘッダー ---------- */
+.app-header {
+  background: var(--navy);
+  color: #fff;
+}
+
+.app-header .inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.app-header .station {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-left: 10px;
+  font-weight: 400;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+/* ---------- レイアウト ---------- */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(33, 39, 69, 0.08);
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- 現在値のタイル ---------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tile {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(33, 39, 69, 0.08);
+  padding: 16px 20px;
+}
+
+.tile .label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tile .label::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.tile .value {
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile .unit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.tile.temp { --accent: var(--temp); }
+.tile.humid { --accent: var(--humid); }
+.tile.press { --accent: var(--press); }
+
+/* ---------- グラフ ---------- */
+.chart-box {
+  position: relative;
+  height: 360px;
+}
+
+/* ---------- ボタン ---------- */
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 18px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--primary);
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.app-header .btn {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  padding: 4px 14px;
+}
+
+.app-header .btn:hover {
+  border-color: #fff;
+}
+
+/* ---------- LEDの操作 ---------- */
+.led-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: none;
+  background: #fff;
+  padding: 10px 26px;
+  border-right: 1px solid var(--line);
+  color: var(--text);
+}
+
+.segmented button:last-child {
+  border-right: none;
+}
+
+.segmented button:hover {
+  background: #eef1fb;
+}
+
+.segmented button.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.led-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.lamp {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c9cdd9;
+}
+
+.lamp.on {
+  background: #ffcc33;
+  box-shadow: 0 0 10px #ffcc33;
+}
+
+.lamp.blink {
+  background: #ffcc33;
+  animation: blink 0.4s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { background: #c9cdd9; box-shadow: none; }
+}
+
+/* ---------- メッセージ ---------- */
+.message {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin: 8px 0 0;
+}
+
+.message:empty {
+  display: none;
+}
+
+/* ---------- ログイン画面 ---------- */
+.login-view {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  padding: 36px 32px;
+}
+
+.login-card .icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  background: #eef1fb;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card h2 {
+  font-size: 1.3rem;
+  margin: 0 0 6px;
+}
+
+.login-card p {
+  color: var(--muted);
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px 18px;
+  font-weight: 700;
+}
+
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.domain-notice {
+  margin-top: 18px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.domain-notice a {
+  color: inherit;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- スマートフォン ---------- */
+@media (max-width: 640px) {
+  .tiles {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .tile {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .tile .value {
+    font-size: 1.8rem;
+  }
+
+  .chart-box {
+    height: 280px;
+  }
+
+  .segmented {
+    width: 100%;
+  }
+
+  .segmented button {
+    flex: 1;
+    padding: 10px 0;
+  }
+}
