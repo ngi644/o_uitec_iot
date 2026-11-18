@@ -6,6 +6,7 @@
 |:-|:-|:-:|
 |`s03_mqtt_broker.json`|MQTTブローカ（Aedes）と，センサデータの受信（`device01/bme`）|[s03](../s03.md)|
 |`s04_dashboard.json`|s03 ＋ ダッシュボード（温度・湿度・気圧のゲージ）|[s04](../s04.md)|
+|`s04_oled_temp.json`|OLEDディスプレイに温度・湿度・気圧を表示する（別タブ．MQTTブローカを含む s03〜s07 のいずれかのフローと一緒に使います）|[s04](../s04.md)|
 |`s05_led_control.json`|s04 ＋ LEDの操作（`device01/status`），接続状態の表示（`device01/connection`）|[s05](../s05.md)|
 |`s06_firebase.json`|s05 ＋ Realtime Databaseへの保存（`stations/st001/data`）|[s06](../s06.md)|
 |`s07_firebase_led.json`|s06 ＋ Realtime Database経由のLEDの操作（`stations/st001/status`）|[s07](../s07.md)|
@@ -20,6 +21,7 @@
 |:-|:-:|:-|
 |node-red-contrib-aedes|すべて|[s03](../s03.md) の手順（ターミナルで `npm install`）|
 |@flowfuse/node-red-dashboard|s04以降|`パレットの管理` → `ノードを追加`|
+|node-red-contrib-oled-i2c|s04_oled_temp|[s04](../s04.md) の手順（ターミナルで `npm install`，I2Cの有効化も必要）|
 |node-red-contrib-firebase-data|s06以降|`パレットの管理` → `ノードを追加`|
 
 ノードが足りないまま読み込むと，そのノードが破線で表示され，デプロイできません．
