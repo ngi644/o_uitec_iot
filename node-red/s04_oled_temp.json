@@ -1,0 +1,143 @@
+[
+  {
+    "id": "oled_tab",
+    "type": "tab",
+    "label": "OLED表示（s04）",
+    "disabled": false,
+    "info": "BME280の温度・湿度・気圧を，Raspberry Piにつないだ OLED（SSD1306，128×64）に表示します。\nnode-red-contrib-oled-i2c が必要です。\nhttps://github.com/ngi644/o_uitec_iot",
+    "env": []
+  },
+  {
+    "id": "oled_comment",
+    "type": "comment",
+    "z": "oled_tab",
+    "name": "s04 OLEDに温度を表示する",
+    "info": "device01/bme のデータが届くたびに，画面を消してから温度などを書き直します。\nOLEDの設定（鉛筆アイコン）で Address が 60（＝0x3c）になっていることを確認してください。\n「0x3c」と入力すると正しく動きません。",
+    "x": 160,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "oled_in_bme",
+    "type": "mqtt in",
+    "z": "oled_tab",
+    "name": "",
+    "topic": "device01/bme",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_cfg",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 120,
+    "wires": [
+      [
+        "oled_fn",
+        "oled_debug"
+      ]
+    ]
+  },
+  {
+    "id": "oled_fn",
+    "type": "function",
+    "z": "oled_tab",
+    "name": "OLEDの表示内容",
+    "func": "// MQTTで受け取ったセンサデータを，OLEDに表示する内容に変換する\n//   出力1 → Clear ノード（画面を消す）\n//   出力2 → String ノード（文字を書く．3行分を上から順に送る）\nconst d = msg.payload;\nif (typeof d !== \"object\" || typeof d.temp !== \"number\") {\n    return null;   // 温度が入っていないデータは表示しない\n}\n\n// 数値を決まった桁数の文字列にする（値がないときは \"--\"）\nconst fmt = (v, digits) => (typeof v === \"number\" ? v.toFixed(digits) : \"--\");\n\n// x, y：文字の左上の位置（ドット）  size：文字の拡大率  font：フォント\nconst lines = [\n    { payload: { x: 1, y: 1,  size: 1, font: \"oled_5x7\", text: \"Temperature\" } },\n    { payload: { x: 1, y: 18, size: 3, font: \"oled_5x7\", text: fmt(d.temp, 1) + \" C\" } },\n    { payload: { x: 1, y: 52, size: 1, font: \"oled_5x7\", text: \"Hum \" + fmt(d.humid, 0) + \"%  \" + fmt(d.press, 0) + \"hPa\" } },\n];\n\nreturn [ { payload: true }, lines ];\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 370,
+    "y": 120,
+    "wires": [
+      [
+        "oled_clear"
+      ],
+      [
+        "oled_string"
+      ]
+    ]
+  },
+  {
+    "id": "oled_clear",
+    "type": "Clear",
+    "z": "oled_tab",
+    "name": "画面を消す",
+    "display": "oled_cfg",
+    "x": 590,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "oled_string",
+    "type": "String",
+    "z": "oled_tab",
+    "name": "文字を書く",
+    "display": "oled_cfg",
+    "x": 590,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "oled_debug",
+    "type": "debug",
+    "z": "oled_tab",
+    "name": "受信データ",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 370,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "oled_cfg",
+    "type": "oled-config",
+    "name": "SSD1306 128x64",
+    "width": "128",
+    "height": "64",
+    "address": "60",
+    "driver": "SSD1306",
+    "i2cBus": "1"
+  },
+  {
+    "id": "mqtt_broker_cfg",
+    "type": "mqtt-broker",
+    "name": "localhost",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  }
+]
